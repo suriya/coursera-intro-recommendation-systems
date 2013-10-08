@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>cs.umn.edu.recsys</groupId>
+  <artifactId>uu-assignment</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>PA3 - User-User CF</name>
+  <description>The user-user CF programming assignment for the MOOC.</description>
+
+  <properties>
+    <lenskit.version>2.0.2</lenskit.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.grouplens.lenskit</groupId>
+      <artifactId>lenskit-core</artifactId>
+      <version>${lenskit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.0.9</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <target>1.6</target>
+            <source>1.6</source>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>appassembler-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>make-scripts</id>
+            <goals><goal>assemble</goal></goals>
+            <phase>package</phase>
+            <configuration>
+              <repositoryLayout>flat</repositoryLayout>
+              <programs>
+                <program>
+                  <name>run-uu</name>
+                  <mainClass>edu.umn.cs.recsys.uu.UUMain</mainClass>
+                </program>
+              </programs>
+              <assembleDirectory>${project.build.directory}</assembleDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>source-package</id>
+            <goals><goal>run</goal></goals>
+            <phase>package</phase>
+            <configuration>
+              <target>
+                <zip destfile="${project.build.directory}/${project.artifactId}.zip">
+                  <mappedresources>
+                    <fileset dir="${basedir}">
+                      <include name="pom.xml"/>
+                      <include name="src/**/*.java"/>
+                      <include name="src/main/resources/*.xml"/>
+                      <include name="data/*.csv"/>
+                    </fileset>
+                    <globmapper from="*" to="${project.artifactId}/*"/>
+                  </mappedresources>
+                </zip>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
