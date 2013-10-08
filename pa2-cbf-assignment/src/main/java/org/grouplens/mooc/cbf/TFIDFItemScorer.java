@@ -4,18 +4,28 @@ import org.grouplens.lenskit.basic.AbstractItemScorer;
 import org.grouplens.lenskit.data.dao.UserEventDAO;
 import org.grouplens.lenskit.data.event.Rating;
 import org.grouplens.lenskit.data.pref.Preference;
+import org.grouplens.lenskit.vectors.ImmutableSparseVector;
 import org.grouplens.lenskit.vectors.MutableSparseVector;
 import org.grouplens.lenskit.vectors.SparseVector;
 import org.grouplens.lenskit.vectors.VectorEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+
 import java.util.List;
 
 /**
  * @author <a href="http://www.grouplens.org">GroupLens Research</a>
  */
 public class TFIDFItemScorer extends AbstractItemScorer {
+    private static final Logger logger = LoggerFactory.getLogger(TFIDFItemScorer.class);
+
+    private static final UserProfileCreationHelper USER_PROFILE_CREATION_HELPER =
+            new SimpleWeightFunction();
+            // new DistanceWeightedFunction();
+
     private final UserEventDAO dao;
     private final TFIDFModel model;
 
@@ -51,11 +61,15 @@ public class TFIDFItemScorer extends AbstractItemScorer {
         for (VectorEntry e: output.fast(VectorEntry.State.EITHER)) {
             // Score the item represented by 'e'.
             // Get the item vector for this item
-            SparseVector iv = model.getItemVector(e.getKey());
+            long item = e.getKey();
+            SparseVector iv = model.getItemVector(item);
             // TODO Compute the cosine of this item and the user's profile, store it in the output vector
-            // TODO And remove this exception to say you've implemented it
-            throw new UnsupportedOperationException("stub implementation");
+             output.set(e, cosine(userVector, iv));
         }
+    }
+
+    private double cosine(SparseVector userVector, SparseVector iv) {
+        return (userVector.dot(iv) / (userVector.norm() * iv.norm()));
     }
 
     private SparseVector makeUserVector(long user) {
@@ -77,14 +91,24 @@ public class TFIDFItemScorer extends AbstractItemScorer {
             Preference p = r.getPreference();
             // We'll never have a null preference. But in LensKit, ratings can have null
             // preferences to express the user unrating an item
-            if (p != null && p.getValue() >= 3.5) {
-                // The user likes this item!
-                // TODO Get the item's vector and add it to the user's profile
+            if (p == null) {
+                continue;
             }
+
+            double weight = USER_PROFILE_CREATION_HELPER.weightOfItem(userRatings, p);
+            if (weight == 0.0) {
+                continue;
+            }
+
+            long item = p.getItemId();
+            MutableSparseVector itemVector = this.model.getItemVector(item).mutableCopy();
+            itemVector.multiply(weight);
+            profile.add(itemVector);
         }
 
         // The profile is accumulated, return it.
         // It is good practice to return a frozen vector.
+
         return profile.freeze();
     }
 }

@@ -1,0 +1,3 @@
+In file src/main/java/org/grouplens/mooc/cbf/TFIDFItemScorer.java the value
+of field TFIDFItemScorer.USER_PROFILE_CREATION_HELPER decides what weight
+each item vector forms a part of the user profile.
