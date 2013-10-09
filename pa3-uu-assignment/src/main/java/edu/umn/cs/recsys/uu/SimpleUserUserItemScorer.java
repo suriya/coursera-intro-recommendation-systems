@@ -75,7 +75,7 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
                 continue;
             }
             long user = p.getUserId();
-            if (! itemRatingsSubset.containsKey(user)) {
+            if (! users.contains(user)) {
                 continue;
             }
             double rating = p.getValue();
@@ -126,7 +126,7 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
             similarities.set(e, similarity);
         }
         // Sorted vsers by similarity score
-        LongArrayList sortedvsers = similarities.keysByValue();
+        LongArrayList sortedvsers = similarities.keysByValue(true);
         int topNsize = Math.min(30, sortedvsers.size());
         long[] topNvsers = new long[topNsize];
         // Create similarity vector for just the top 30 vsers
