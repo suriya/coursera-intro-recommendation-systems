@@ -1,7 +1,6 @@
 package edu.umn.cs.recsys.uu;
 
 import java.util.List;
-import java.util.Map;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -23,11 +22,8 @@ import org.grouplens.lenskit.vectors.similarity.CosineVectorSimilarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.umn.cs.recsys.dao.MOOCUserDAO;
-
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.management.ValueExp;
 
 /**
  * User-user item scorer.
@@ -41,13 +37,11 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
 
     private final UserEventDAO userDao;
     private final ItemEventDAO itemDao;
-    private final MOOCUserDAO moocUserDao;
 
     @Inject
-    public SimpleUserUserItemScorer(UserEventDAO udao, ItemEventDAO idao, MOOCUserDAO moocUserDao) {
+    public SimpleUserUserItemScorer(UserEventDAO udao, ItemEventDAO idao) {
         userDao = udao;
         itemDao = idao;
-        this.moocUserDao = moocUserDao;
     }
 
     private static void meanCenterVector(MutableSparseVector v) {
@@ -138,7 +132,8 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
         return topNsimilarity.freeze();
     }
 
-    private static void printUserVector(SparseVector userVector, long user) {
+    @SuppressWarnings("unused")
+	private static void printUserVector(SparseVector userVector, long user) {
         for (VectorEntry e : userVector.fast(VectorEntry.State.SET)) {
             long item = e.getKey();
             double rating = e.getValue();
