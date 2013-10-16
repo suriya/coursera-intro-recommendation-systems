@@ -88,6 +88,7 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
 
     /**
      * Get the mean rating made by each user in the set 'users'.
+     */
     private SparseVector getMeanRatings(LongSortedSet users) {
         MutableSparseVector meanRatings = MutableSparseVector.create(users);
         for (VectorEntry ve : meanRatings.fast(VectorEntry.State.UNSET)) {
