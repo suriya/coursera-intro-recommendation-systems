@@ -49,6 +49,10 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
         v.add(-mean);
     }
 
+    /**
+     * Compute similarity score between two users, given their ratings
+     * vector.
+     */
     private static double similarity(SparseVector v1, SparseVector v2) {
         MutableSparseVector mv1 = v1.mutableCopy();
         MutableSparseVector mv2 = v2.mutableCopy();
@@ -57,6 +61,10 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
         return cvs.similarity(mv1, mv2);
     }
 
+    /**
+     * Get all ratings given to 'item' by 'users', i.e. one rating for each
+     * user in the set 'users'.
+     */
     private SparseVector getItemRatings(long item, LongSortedSet users) {
         MutableSparseVector itemRatingsSubset = MutableSparseVector.create(users);
         List<Rating> itemRatings = itemDao.getEventsForItem(item, Rating.class);
@@ -78,6 +86,8 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
         return itemRatingsSubset;
     }
 
+    /**
+     * Get the mean rating made by each user in the set 'users'.
     private SparseVector getMeanRatings(LongSortedSet users) {
         MutableSparseVector meanRatings = MutableSparseVector.create(users);
         for (VectorEntry ve : meanRatings.fast(VectorEntry.State.UNSET)) {
@@ -88,6 +98,9 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
         return meanRatings.freeze();
     }
 
+    /**
+     * Return the predicted rating of 'item' for 'user'.
+     */
     private double predictedRating(long user, long item) {
         // All sparse vectors have the key domain equal to the neighborhood.
         SparseVector similarities = neighborhood(user, item);
@@ -105,6 +118,9 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
         return (numerator / denominator) + getUserRatingVector(user).mean();
     }
 
+    /**
+     * Return the neighborhood of 'user' among those who have rated 'item'.
+     */
     private ImmutableSparseVector neighborhood(long user, long item) {
         // Get vsers that rated 'item'
         LongSet vsers = this.itemDao.getUsersForItem(item);
