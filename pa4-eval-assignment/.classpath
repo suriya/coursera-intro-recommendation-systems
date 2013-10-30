@@ -4,9 +4,9 @@
   <classpathentry kind="output" path="target/classes"/>
   <classpathentry kind="var" path="M2_REPO/javax/inject/javax.inject/1/javax.inject-1.jar"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-  <classpathentry kind="var" path="M2_REPO/org/grouplens/lenskit/lenskit-core/2.0.3.2/lenskit-core-2.0.3.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/grouplens/lenskit/lenskit-core/2.0.3.2/lenskit-core-2.0.3.2.jar" sourcepath="/M2_REPO/lenskit-2.0.3.2.zip"/>
   <classpathentry kind="var" path="M2_REPO/it/unimi/dsi/fastutil/6.5.6/fastutil-6.5.6.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/grouplens/lenskit/lenskit-data-structures/2.0.3.2/lenskit-data-structures-2.0.3.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/grouplens/lenskit/lenskit-data-structures/2.0.3.2/lenskit-data-structures-2.0.3.2.jar" sourcepath="/M2_REPO/lenskit-2.0.3.2.zip"/>
   <classpathentry kind="var" path="M2_REPO/com/google/guava/guava/14.0.1/guava-14.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-lang3/3.1/commons-lang3-3.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"/>
