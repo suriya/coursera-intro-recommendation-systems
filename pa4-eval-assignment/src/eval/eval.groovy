@@ -91,4 +91,66 @@ trainTest {
         bind ItemScorer to UserMeanItemScorer
         bind (UserMeanBaseline, ItemScorer) to ItemMeanRatingItemScorer
     }
+
+    for (nnbrs in [5, 10, 15, 20, 25, 30, 40, 50, 75, 100 ]) {
+        algorithm("UserUser") {
+            include tagConfig
+            // Attributes let you specify additional properties of the algorithm.
+            // They go in the output file, so you can do things like plot accuracy by neighborhood size
+            attributes["NNbrs"] = nnbrs
+            // use the user-user rating predictor
+            bind ItemScorer to UserUserItemScorer
+            set NeighborhoodSize to nnbrs
+            bind VectorSimilarity to PearsonCorrelation
+        }
+
+        algorithm("UserUserNorm") {
+            include tagConfig
+            // Attributes let you specify additional properties of the algorithm.
+            // They go in the output file, so you can do things like plot accuracy by neighborhood size
+            attributes["NNbrs"] = nnbrs
+            // use the user-user rating predictor
+            bind ItemScorer to UserUserItemScorer
+            set NeighborhoodSize to nnbrs
+            bind VectorNormalizer to MeanCenteringVectorNormalizer
+            bind VectorSimilarity to PearsonCorrelation
+        }
+
+        algorithm("UserUserCosine") {
+            include tagConfig
+            // Attributes let you specify additional properties of the algorithm.
+            // They go in the output file, so you can do things like plot accuracy by neighborhood size
+            attributes["NNbrs"] = nnbrs
+            // use the user-user rating predictor
+            bind ItemScorer to UserUserItemScorer
+            set NeighborhoodSize to nnbrs
+            bind VectorNormalizer to MeanCenteringVectorNormalizer
+            bind VectorSimilarity to CosineVectorSimilarity
+        }
+
+        algorithm("Lucene") {
+            attributes["NNbrs"] = nnbrs
+            include tagConfig
+            bind ItemScorer to ItemItemScorer
+            bind ItemItemModel to LuceneItemItemModel
+            set NeighborhoodSize to nnbrs
+            // consider using all 100 movies as neighbors
+            set ModelSize to 100
+        }
+
+        algorithm("LuceneNorm") {
+            attributes["NNbrs"] = nnbrs
+            include tagConfig
+            bind ItemScorer to ItemItemScorer
+            bind ItemItemModel to LuceneItemItemModel
+            set NeighborhoodSize to nnbrs
+            // consider using all 100 movies as neighbors
+            set ModelSize to 100
+            bind UserVectorNormalizer to BaselineSubtractingUserVectorNormalizer
+            within (UserVectorNormalizer) {
+                bind (BaselineScorer, ItemScorer) to ItemMeanRatingItemScorer
+            }
+        }
+
+    }
 }
