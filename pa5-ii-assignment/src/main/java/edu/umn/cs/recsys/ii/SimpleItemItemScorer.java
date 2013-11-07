@@ -15,8 +15,6 @@ import org.grouplens.lenskit.vectors.VectorEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.core.pattern.SpacePadder;
-
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
