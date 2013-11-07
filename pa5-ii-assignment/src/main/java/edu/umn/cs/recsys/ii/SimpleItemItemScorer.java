@@ -8,18 +8,27 @@ import org.grouplens.lenskit.data.history.RatingVectorUserHistorySummarizer;
 import org.grouplens.lenskit.data.history.UserHistory;
 import org.grouplens.lenskit.knn.NeighborhoodSize;
 import org.grouplens.lenskit.scored.ScoredId;
+import org.grouplens.lenskit.vectors.ImmutableSparseVector;
 import org.grouplens.lenskit.vectors.MutableSparseVector;
 import org.grouplens.lenskit.vectors.SparseVector;
 import org.grouplens.lenskit.vectors.VectorEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.core.pattern.SpacePadder;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="http://www.grouplens.org">GroupLens Research</a>
  */
 public class SimpleItemItemScorer extends AbstractItemScorer {
+    private static final Logger logger = LoggerFactory.getLogger(SimpleItemItemScorer.class);
     private final SimpleItemItemModel model;
     private final UserEventDAO userEvents;
     private final int neighborhoodSize;
@@ -32,6 +41,44 @@ public class SimpleItemItemScorer extends AbstractItemScorer {
         neighborhoodSize = nnbrs;
     }
 
+    private void printNeighborhood(long item, List<ScoredId> neighbors) {
+        logger.info("Printing the {} neighbors of item {}", neighbors.size(), item);
+        int numprinted = 0;
+        for (ScoredId scoredId : neighbors) {
+            long jtem = scoredId.getId();
+            double similarity = scoredId.getScore();
+            logger.info("   jtem: {}, similarity: {}", jtem, similarity);
+            numprinted++;
+            if (numprinted >= 10) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * The rating predicted for 'item' for 'user'
+     */
+    public double predictedRating(long user, long item) {
+        List<ScoredId> neighbors = model.getNeighbors(item);
+        printNeighborhood(item, neighbors);
+        SparseVector userRatings = getUserRatingVector(user);
+        Map<Long, Double> ratedNeighbors = new HashMap<Long, Double>();
+        int numNeighbors = 0;
+        for (ScoredId scoredId : neighbors) {
+            long jtem = scoredId.getId();
+            double similarity = scoredId.getScore();
+            if (userRatings.containsKey(jtem)) {
+                ratedNeighbors.put(jtem, similarity);
+                numNeighbors++;
+                if (numNeighbors >= neighborhoodSize) {
+                    break;
+                }
+            }
+        }
+        SparseVector similarities = ImmutableSparseVector.create(ratedNeighbors);
+        return similarities.dot(userRatings) / similarities.sum();
+    }
+
     /**
      * Score items for a user.
      * @param user The user ID.
@@ -40,12 +87,12 @@ public class SimpleItemItemScorer extends AbstractItemScorer {
      */
     @Override
     public void score(long user, @Nonnull MutableSparseVector scores) {
-        SparseVector ratings = getUserRatingVector(user);
 
         for (VectorEntry e: scores.fast(VectorEntry.State.EITHER)) {
             long item = e.getKey();
-            List<ScoredId> neighbors = model.getNeighbors(item);
             // TODO Score this item and save the score into scores
+            double prediction = predictedRating(user, item);
+            scores.set(e, prediction);
         }
     }
 

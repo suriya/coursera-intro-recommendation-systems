@@ -1,8 +1,10 @@
 package edu.umn.cs.recsys.ii;
 
 import com.google.common.collect.ImmutableMap;
+
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
+
 import org.grouplens.lenskit.collections.LongUtils;
 import org.grouplens.lenskit.core.Transient;
 import org.grouplens.lenskit.cursors.Cursor;
@@ -11,6 +13,7 @@ import org.grouplens.lenskit.data.dao.UserEventDAO;
 import org.grouplens.lenskit.data.event.Event;
 import org.grouplens.lenskit.data.history.RatingVectorUserHistorySummarizer;
 import org.grouplens.lenskit.data.history.UserHistory;
+import org.grouplens.lenskit.scored.PackedScoredIdList;
 import org.grouplens.lenskit.scored.ScoredId;
 import org.grouplens.lenskit.scored.ScoredIdListBuilder;
 import org.grouplens.lenskit.scored.ScoredIds;
@@ -18,11 +21,14 @@ import org.grouplens.lenskit.vectors.ImmutableSparseVector;
 import org.grouplens.lenskit.vectors.MutableSparseVector;
 import org.grouplens.lenskit.vectors.SparseVector;
 import org.grouplens.lenskit.vectors.VectorEntry;
+import org.grouplens.lenskit.vectors.VectorEntry.State;
+import org.grouplens.lenskit.vectors.similarity.CosineVectorSimilarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +40,8 @@ import java.util.Map;
 public class SimpleItemItemModelBuilder implements Provider<SimpleItemItemModel> {
     private final ItemDAO itemDao;
     private final UserEventDAO userEventDao;
-    private static final Logger logger = LoggerFactory.getLogger(SimpleItemItemModelBuilder.class);;
+    private static final Logger logger = LoggerFactory.getLogger(SimpleItemItemModelBuilder.class);
+    private static final CosineVectorSimilarity cvs = new CosineVectorSimilarity();
 
     @Inject
     public SimpleItemItemModelBuilder(@Transient ItemDAO idao,
@@ -52,11 +59,29 @@ public class SimpleItemItemModelBuilder implements Provider<SimpleItemItemModel>
         // Get all items - you might find this useful
         LongSortedSet items = LongUtils.packedSet(itemVectors.keySet());
         // Map items to vectors of item similarities
-        Map<Long,MutableSparseVector> itemSimilarities = new HashMap<Long, MutableSparseVector>();
+        Map<Long, List<ScoredId>> itemSimilarities = new HashMap<Long, List<ScoredId>>();
+
+        for (long item : items) {
+            ImmutableSparseVector itemvector = itemVectors.get(item);
+            ScoredIdListBuilder silbuilder = ScoredIds.newListBuilder();
+            for (long jtem : items) {
+                if (item == jtem) {
+                    continue;
+                }
+                ImmutableSparseVector jtemvector = itemVectors.get(jtem);
+                double similarity = cvs.similarity(itemvector, jtemvector);
+                if (similarity <= 0.0) {
+                    continue;
+                }
+                silbuilder.add(jtem, similarity);
+            }
+            PackedScoredIdList similarities = silbuilder.sort(ScoredIds.scoreOrder().reverse()).finish();
+            itemSimilarities.put(item, similarities);
+        }
 
         // TODO Compute the similarities between each pair of items
         // It will need to be in a map of longs to lists of Scored IDs to store in the model
-        return new SimpleItemItemModel(Collections.EMPTY_MAP);
+        return new SimpleItemItemModel(itemSimilarities);
     }
 
     /**
@@ -78,9 +103,17 @@ public class SimpleItemItemModelBuilder implements Provider<SimpleItemItemModel>
         Cursor<UserHistory<Event>> stream = userEventDao.streamEventsByUser();
         try {
             for (UserHistory<Event> evt: stream) {
+                long user = evt.getUserId();
                 MutableSparseVector vector = RatingVectorUserHistorySummarizer.makeRatingVector(evt).mutableCopy();
                 // vector is now the user's rating vector
                 // TODO Normalize this vector and store the ratings in the item data
+                double usermean = vector.mean();
+                for (VectorEntry ve : vector.fast(State.SET)) {
+                    long item = ve.getKey();
+                    double rating = ve.getValue();
+                    double normrating = rating - usermean;
+                    itemData.get(item).put(user, normrating);
+                }
             }
         } finally {
             stream.close();
