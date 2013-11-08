@@ -1,7 +1,5 @@
 package edu.umn.cs.recsys.ii;
 
-import com.google.common.collect.ImmutableMap;
-
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
@@ -19,7 +17,6 @@ import org.grouplens.lenskit.scored.ScoredIdListBuilder;
 import org.grouplens.lenskit.scored.ScoredIds;
 import org.grouplens.lenskit.vectors.ImmutableSparseVector;
 import org.grouplens.lenskit.vectors.MutableSparseVector;
-import org.grouplens.lenskit.vectors.SparseVector;
 import org.grouplens.lenskit.vectors.VectorEntry;
 import org.grouplens.lenskit.vectors.VectorEntry.State;
 import org.grouplens.lenskit.vectors.similarity.CosineVectorSimilarity;
@@ -29,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

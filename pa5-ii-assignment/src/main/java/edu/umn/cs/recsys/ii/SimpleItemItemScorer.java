@@ -58,7 +58,7 @@ public class SimpleItemItemScorer extends AbstractItemScorer {
      */
     public double predictedRating(long user, long item) {
         List<ScoredId> neighbors = model.getNeighbors(item);
-        printNeighborhood(item, neighbors);
+//        printNeighborhood(item, neighbors);
         SparseVector userRatings = getUserRatingVector(user);
         Map<Long, Double> ratedNeighbors = new HashMap<Long, Double>();
         int numNeighbors = 0;
