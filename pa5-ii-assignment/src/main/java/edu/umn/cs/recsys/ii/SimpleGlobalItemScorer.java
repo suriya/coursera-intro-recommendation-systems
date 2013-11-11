@@ -56,7 +56,7 @@ public class SimpleGlobalItemScorer extends AbstractGlobalItemScorer {
         for (VectorEntry entry : referenceSimilarities.fast(State.EITHER)) {
             long jtem = entry.getKey();
             if (nbrsMap.containsKey(jtem)) {
-                logger.info("Getting value for item {} from nbrsMap {}", jtem, nbrsMap.get(jtem));
+//                logger.info("Getting value for item {} from nbrsMap {}", jtem, nbrsMap.get(jtem));
                 double similarity = nbrsMap.get(jtem);
                 referenceSimilarities.set(entry, similarity);
             }
