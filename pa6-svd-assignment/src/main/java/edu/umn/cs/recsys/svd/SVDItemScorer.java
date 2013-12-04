@@ -41,6 +41,15 @@ public class SVDItemScorer extends AbstractItemScorer {
         userEvents = uedao;
     }
 
+    private double prediction(long user, long item) {
+        double baseline = baselineScorer.score(user, item);
+        RealMatrix userFeature = model.getUserVector(user);
+        RealMatrix featureWeights = model.getFeatureWeights();
+        RealMatrix itemFeature = model.getItemVector(item);
+        double product = userFeature.multiply(featureWeights).multiply(itemFeature.transpose()).getEntry(0, 0);
+        return baseline + product;
+    }
+
     /**
      * Score items in a vector. The key domain of the provided vector is the
      * items to score, and the score method sets the values for each item to
@@ -57,6 +66,8 @@ public class SVDItemScorer extends AbstractItemScorer {
         for (VectorEntry e: scores.fast(VectorEntry.State.EITHER)) {
             long item = e.getKey();
             // TODO Set the scores
+            double score = prediction(user, item);
+            scores.set(e, score);
         }
     }
 

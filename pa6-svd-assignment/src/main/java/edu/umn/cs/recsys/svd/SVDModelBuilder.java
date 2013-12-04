@@ -17,6 +17,7 @@ import org.grouplens.lenskit.data.history.UserHistory;
 import org.grouplens.lenskit.indexes.IdIndexMapping;
 import org.grouplens.lenskit.vectors.MutableSparseVector;
 import org.grouplens.lenskit.vectors.VectorEntry;
+import org.grouplens.lenskit.vectors.VectorEntry.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,9 +82,15 @@ public class SVDModelBuilder implements Provider<SVDModel> {
 
         // Third, truncate the decomposed matrix
         // TODO Truncate the matrices and construct the SVD model
+        RealMatrix userMatrix = svd.getU();
+        RealMatrix weights = svd.getS();
+        RealMatrix itemMatrix = svd.getV();
 
-        // TODO Replace this throw line with returning the model when you are finished
-        throw new UnsupportedOperationException("SVD model not yet implemented");
+        userMatrix = userMatrix.getSubMatrix(0, userMatrix.getRowDimension() - 1, 0, featureCount - 1);
+        weights = weights.getSubMatrix(0, featureCount - 1, 0, featureCount - 1);
+        itemMatrix = itemMatrix.getSubMatrix(0, itemMatrix.getRowDimension() - 1, 0, featureCount - 1);
+
+        return new SVDModel(userMapping, itemMapping, userMatrix, itemMatrix, weights);
     }
 
     /**
@@ -112,6 +119,13 @@ public class SVDModelBuilder implements Provider<SVDModel> {
                 MutableSparseVector baselines = MutableSparseVector.create(ratings.keySet());
                 baselineScorer.score(user.getUserId(), baselines);
                 // TODO Populate this user's row with their ratings, minus the baseline scores
+                for (VectorEntry entry : ratings.fast(State.SET)) {
+                    long itemid = entry.getKey();
+                    int i = itemMapping.getIndex(itemid);
+                    double rating = entry.getValue();
+                    double baseline = baselines.get(itemid);
+                    matrix.setEntry(u, i, rating - baseline);
+                }
             }
         } finally {
             users.close();
