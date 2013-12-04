@@ -43,11 +43,15 @@ public class SVDItemScorer extends AbstractItemScorer {
 
     private double prediction(long user, long item) {
         double baseline = baselineScorer.score(user, item);
-        RealMatrix userFeature = model.getUserVector(user);
-        RealMatrix featureWeights = model.getFeatureWeights();
-        RealMatrix itemFeature = model.getItemVector(item);
-        double product = userFeature.multiply(featureWeights).multiply(itemFeature.transpose()).getEntry(0, 0);
-        return baseline + product;
+        try {
+            RealMatrix userFeature = model.getUserVector(user);
+            RealMatrix featureWeights = model.getFeatureWeights();
+            RealMatrix itemFeature = model.getItemVector(item);
+            double product = userFeature.multiply(featureWeights).multiply(itemFeature.transpose()).getEntry(0, 0);
+            return baseline + product;
+        } catch (NullPointerException npe) {
+            return baseline;
+        }
     }
 
     /**
